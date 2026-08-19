@@ -16,11 +16,12 @@ public class LockStrategy
 
     public bool Apply(List<Die> dice)
     {
-        if (!_minEyesForNumberUnlocked.TryGetValue(dice.Count(d => !d.Locked), out var minEyes)) return false;
+        if (!_minEyesForNumberUnlocked.TryGetValue(dice.Count(die => !die.Locked), out var minEyes)) return false;
 
         var anyLocked = false;
         foreach (var die in dice)
-            if (die.LockIf(minEyes)) anyLocked = true;
+            if (die.LockIf(minEyes))
+                anyLocked = true;
         return anyLocked;
     }
 }
