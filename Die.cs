@@ -1,4 +1,4 @@
-namespace Dice;
+namespace Thirty;
 
 public class Die
 {

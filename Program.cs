@@ -1,55 +1,45 @@
-﻿using Dice;
+﻿using Thirty;
 
-const int numberOfRounds = 10000000;
-var lockStrategy1 = new LockStrategy(minEyes: 5);
-var lockStragegy2 = new LockStrategy(minEyes: 6);
-//var counts = new int[37];
-var win1 = 0;
-var win2 = 0;
+const int numberOfRounds = 100000;
+const int stopAt = 30;
 
+var lockStrategy = new LockStrategy(new Dictionary<int, int>{{6, 6}, {5, 6}, {4, 6}, {3, 6}, {2, 5}, {1, 4}});
+var win = 0;
+
+// Create list of six die
 var dice = Enumerable.Range(0, 6).Select(_ => new Die()).ToList();
 
-for (int i = 0; i < numberOfRounds; i++)
+for (var i = 0; i < numberOfRounds; i++)
 {
-    var sum1 = Round(dice, lockStrategy1);
-    var sum2 = Round(dice, lockStragegy2);
-    if (sum1 > sum2) win1++;
-    else if (sum2 > sum1) win2++;
-    //counts[sum]++;
+    var sum = Round(dice, lockStrategy, stopAt);
+    if (sum >= stopAt) win++;
 }
 
-Console.WriteLine($"Strategy 1 wins: {win1} ({(double)win1 / numberOfRounds * 100.0}%)");
-Console.WriteLine($"Strategy 2 wins: {win2} ({(double)win2 / numberOfRounds * 100.0}%)");
-/*for (var i = 6; i < counts.Length; ++i)
-    Console.WriteLine($"{i},{counts[i] / (double)numberOfRounds * 100.0}");
-
-var average = counts.Select((count, sum) => (double)count * sum).Sum() / (double)numberOfRounds;
-Console.WriteLine($"Average: {average}");*/
+Console.WriteLine($"Strategy wins: {win} ({(double)win / numberOfRounds * 100.0}%)");
 
 return;
 
-static int Round(List<Die> dice, LockStrategy lockStrategy)
+static int Round(List<Die> dice, LockStrategy lockStrategy, int stopAt)
 {
-    UnlockAll(dice);
+    // Unlock all
+    foreach (var die in dice) die.Locked = false;
+
     while (dice.Any(die => !die.Locked))
     {
-        RollUnlocked(dice);
+        // Roll if unlocked
+        foreach (var die in dice) die.RollIfUnlocked();
+
+        // Lock according to lock strategy; if no die locked, lock one with largest number of eyes
         var anyLocked = lockStrategy.Apply(dice);
         if (!anyLocked)
             dice.Where(die => !die.Locked).MaxBy(die => die.Eyes)?.Locked = true;
-        //Console.WriteLine(string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));
+        /*Console.WriteLine(
+            string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));*/
+
+        // No need to continue past stop result
+        if (dice.Sum(die => die.Eyes) >= stopAt) break;
     }
 
     var sum = dice.Sum(die => die.Eyes);
     return sum;
-}
-
-static void UnlockAll(List<Die> dice)
-{
-    foreach (var die in dice) die.Locked = false;
-}
-
-static void RollUnlocked(List<Die> dice)
-{
-    foreach (var die in dice) die.RollIfUnlocked();
 }
