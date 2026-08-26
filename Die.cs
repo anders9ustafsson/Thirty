@@ -2,20 +2,18 @@ namespace Thirty;
 
 public class Die
 {
-    private int _eyes;
-
     public Die()
     {
         Roll();
     }
 
-    public int Eyes => _eyes;
-    
+    public int Eyes { get; private set; }
+
     public bool Locked { get; set;}
     
     public void Roll()
     {
-        _eyes = Random.Shared.Next(1, 7);
+        Eyes = Random.Shared.Next(1, 7);
     }
 
     public void RollIfUnlocked()
@@ -24,9 +22,16 @@ public class Die
         Roll();
     }
 
-    public bool LockIf(int minEyes)
+    public bool LockIfAtLeast(int minEyes)
     {
-        if (Locked || _eyes < minEyes) return false;
+        if (Locked || Eyes < minEyes) return false;
+        Locked = true;
+        return true;
+    }
+
+    public bool LockIfExactly(int eyes)
+    {
+        if (Locked || Eyes != eyes) return false;
         Locked = true;
         return true;
     }

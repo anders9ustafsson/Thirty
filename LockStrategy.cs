@@ -1,26 +1,21 @@
 namespace Thirty;
 
-public class LockStrategy
+public class LockStrategy(Dictionary<int, int> minEyesForNumberUnlocked, int stopAt)
 {
-    private readonly Dictionary<int, int> _minEyesForNumberUnlocked;
-
-    public LockStrategy(int minEyes)
+    public LockStrategy(int minEyes) : this(Enumerable.Range(1, 6).ToDictionary(i => i, _ => minEyes), 30)
     {
-        _minEyesForNumberUnlocked = Enumerable.Range(1, 6).ToDictionary(i => i, _ => minEyes);
     }
 
-    public LockStrategy(Dictionary<int, int> minEyesForNumberUnlocked)
-    {
-        _minEyesForNumberUnlocked = minEyesForNumberUnlocked;
-    }
+    public int StopAt { get; } = stopAt;
 
     public bool Apply(List<Die> dice)
     {
-        if (!_minEyesForNumberUnlocked.TryGetValue(dice.Count(die => !die.Locked), out var minEyes)) return false;
+        // Get min eyes for the number of unlocked dice
+        if (!minEyesForNumberUnlocked.TryGetValue(dice.Count(die => !die.Locked), out var minEyes)) return false;
 
         var anyLocked = false;
         foreach (var die in dice)
-            if (die.LockIf(minEyes))
+            if (die.LockIfAtLeast(minEyes))
                 anyLocked = true;
         return anyLocked;
     }
