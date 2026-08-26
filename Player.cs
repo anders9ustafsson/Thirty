@@ -2,7 +2,21 @@
 
 public class Player(LockStrategy lockStrategy)
 {
-    public int Play(List<Die> dice)
+    public int Points { get; private set; } = 30;
+
+    public void NewGame()
+    {
+        Points = 30;
+    }
+
+    public int ApplyPenalty(int penalty)
+    {
+        var overshoot = Math.Max(0, penalty - Points);
+        Points -= penalty;
+        return overshoot;
+    }
+
+    public (int, int) Play(List<Die> dice)
     {
         // Unlock all
         foreach (var die in dice) die.Locked = false;
@@ -24,7 +38,12 @@ public class Player(LockStrategy lockStrategy)
         }
 
         var sum = dice.Sum(die => die.Eyes);
-        return sum;
+
+        // Minus points if below 30, 10 bonus if all dice have the same eyes
+        var points = Math.Min(0, sum - 30) + (dice.All(die => die == dice[0]) ? 10 : 0);
+        Points += points;
+
+        return (sum, points);
     }
 
 }
