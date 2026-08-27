@@ -19,4 +19,9 @@ public class LockStrategy(Dictionary<int, int> minEyesForNumberUnlocked, int sto
                 anyLocked = true;
         return anyLocked;
     }
+
+    public override string ToString()
+    {
+        return $"{string.Join(",", minEyesForNumberUnlocked.Values)},{StopAt}";
+    }
 }

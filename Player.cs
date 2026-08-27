@@ -9,17 +9,9 @@ public class Player(LockStrategy lockStrategy)
         Points = 30;
     }
 
-    public int ApplyPenalty(int penalty)
+    public (int, int) PlayQualification(List<Die> dice)
     {
-        var overshoot = Math.Max(0, penalty - Points);
-        Points -= penalty;
-        return overshoot;
-    }
-
-    public (int, int) Play(List<Die> dice)
-    {
-        // Unlock all
-        foreach (var die in dice) die.Locked = false;
+        UnlockAll(dice);
 
         while (dice.Any(die => !die.Locked))
         {
@@ -46,4 +38,47 @@ public class Player(LockStrategy lockStrategy)
         return (sum, points);
     }
 
+    public int PlayPenalty(List<Die> dice, int eyes)
+    {
+        UnlockAll(dice);
+
+        while (dice.Any(die => !die.Locked))
+        {
+            // Roll if unlocked
+            foreach (var die in dice) die.RollIfUnlocked();
+
+            // Lock those with the requested number of eyes
+            var anyLocked = dice.Count(die => die.LockIfExactly(eyes)) > 0;
+            /*Console.WriteLine(
+                string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));*/
+
+            // If no new die locked, exit the loop
+            if (!anyLocked) break;
+        }
+
+        // Count sum of dice with the requested number of eyes; if all dice have the requested number of eyes, double the count
+        var count = dice.Count(die => die.Eyes == eyes);
+        return eyes * count * (count == dice.Count ? 2 : 1);
+    }
+
+    public int Play(List<Die> dice, int penalty)
+    {
+        var remaining = penalty - Points;
+        if (remaining > 0)
+        {
+            Points = 0;
+            return remaining;
+        }
+
+        var (sum, points) = PlayQualification(dice);
+        Points = Math.Max(Points + points, 0);
+
+        return Points > 0 && sum > 30 ? PlayPenalty(dice, sum - 30) : 0;
+    }
+
+    private static void UnlockAll(List<Die> dice)
+    {
+        // Unlock all
+        foreach (var die in dice) die.Locked = false;
+    }
 }

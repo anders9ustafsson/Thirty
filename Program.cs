@@ -1,7 +1,7 @@
 ﻿using Thirty;
 
 const int numberOfRounds = 100000;
-const int stopAt = 31;
+const int stopAt = 30;
 const int strategyMinEyes = 4;
 
 // Loop over relevant lock strategies
@@ -17,7 +17,7 @@ foreach (var lockStrategy in EnumerateLockStrategies(strategyMinEyes, stopAt))
 
     for (var i = 0; i < numberOfRounds; i++)
     {
-        var (sum, points) = player.Play(dice);
+        var (sum, points) = player.PlayQualification(dice);
         if (sum >= 30) win++;
         
         // Minus points if below 30, 10 bonus if all dice have the same eyes
@@ -26,6 +26,8 @@ foreach (var lockStrategy in EnumerateLockStrategies(strategyMinEyes, stopAt))
 
     Console.WriteLine($"Strategy {lockStrategy} wins {(double)win / numberOfRounds * 100.0:F1}%, average points {totalPoints / numberOfRounds:F3}");
 }
+
+return;
 
 static IEnumerable<LockStrategy> EnumerateLockStrategies(int minEyes, int stopAt)
 {
