@@ -9,8 +9,10 @@ public class Player(LockStrategy lockStrategy)
         Points = 30;
     }
 
-    public (int, int) PlayQualification(List<Die> dice)
+    public (int, int) PlayQualification(List<Die> dice, bool log = false)
     {
+        if (log) Console.WriteLine("Qualification");
+
         UnlockAll(dice);
 
         while (dice.Any(die => !die.Locked))
@@ -22,8 +24,10 @@ public class Player(LockStrategy lockStrategy)
             var anyLocked = lockStrategy.Apply(dice);
             if (!anyLocked)
                 dice.Where(die => !die.Locked).MaxBy(die => die.Eyes)?.Locked = true;
-            /*Console.WriteLine(
-                string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));*/
+
+            if (log)
+                Console.WriteLine(
+                    string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));
 
             // No need to continue past stop result
             if (dice.Sum(die => die.Eyes) >= lockStrategy.StopAt) break;
@@ -33,13 +37,14 @@ public class Player(LockStrategy lockStrategy)
 
         // Minus points if below 30, 10 bonus if all dice have the same eyes
         var points = Math.Min(0, sum - 30) + (dice.All(die => die == dice[0]) ? 10 : 0);
-        Points += points;
 
         return (sum, points);
     }
 
-    public int PlayPenalty(List<Die> dice, int eyes)
+    public int PlayPenalty(List<Die> dice, int eyes, bool log = false)
     {
+        if (log) Console.WriteLine("Penalty");
+
         UnlockAll(dice);
 
         while (dice.Any(die => !die.Locked))
@@ -49,8 +54,10 @@ public class Player(LockStrategy lockStrategy)
 
             // Lock those with the requested number of eyes
             var anyLocked = dice.Count(die => die.LockIfExactly(eyes)) > 0;
-            /*Console.WriteLine(
-                string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));*/
+
+            if (log)
+                Console.WriteLine(
+                    string.Join(", ", dice.Select(die => $"{die.Eyes}{(die.Locked ? "L" : "")}")));
 
             // If no new die locked, exit the loop
             if (!anyLocked) break;
@@ -61,7 +68,7 @@ public class Player(LockStrategy lockStrategy)
         return eyes * count * (count == dice.Count ? 2 : 1);
     }
 
-    public int Play(List<Die> dice, int penalty)
+    public int Play(List<Die> dice, int penalty, bool log = false)
     {
         var remaining = penalty - Points;
         if (remaining > 0)
@@ -70,10 +77,12 @@ public class Player(LockStrategy lockStrategy)
             return remaining;
         }
 
-        var (sum, points) = PlayQualification(dice);
+        var (sum, points) = PlayQualification(dice, log);
         Points = Math.Max(Points + points, 0);
 
-        return Points > 0 && sum > 30 ? PlayPenalty(dice, sum - 30) : 0;
+        if (log) Console.WriteLine($"Sum: {sum}, Points: {Points}");
+
+        return Points > 0 && sum > 30 ? PlayPenalty(dice, sum - 30, log) : 0;
     }
 
     private static void UnlockAll(List<Die> dice)
