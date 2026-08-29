@@ -1,8 +1,14 @@
 ﻿namespace Thirty;
 
-public class Player(LockStrategy lockStrategy)
+public class Player(string name, LockStrategy lockStrategy)
 {
+    public string Name => name;
+
+    public LockStrategy LockStrategy => lockStrategy;
+
     public int Points { get; private set; } = 30;
+
+    public bool IsIn => Points > 0;
 
     public void NewGame()
     {
@@ -70,9 +76,11 @@ public class Player(LockStrategy lockStrategy)
 
     public int Play(List<Die> dice, int penalty, bool log = false)
     {
-        var remaining = penalty - Points;
-        if (remaining > 0)
+        Points -= penalty;
+        if (Points <= 0)
         {
+            // Return remaining points to be deducted from the next player
+            var remaining = -Points;
             Points = 0;
             return remaining;
         }

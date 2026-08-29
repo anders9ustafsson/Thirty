@@ -35,4 +35,9 @@ public class Die
         Locked = true;
         return true;
     }
+
+    public static List<Die> NewDice()
+    {
+        return [.. Enumerable.Range(0, 6).Select(_ => new Die())];
+    }
 }

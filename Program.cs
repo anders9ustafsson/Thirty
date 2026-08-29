@@ -1,6 +1,6 @@
 ﻿using Thirty;
 
-SimplePlay();
+PlayStatistics();
 return;
 
 static IEnumerable<LockStrategy> EnumerateLockStrategies(int minEyes, int stopAt)
@@ -25,7 +25,7 @@ static void CreateStatistics()
     // Loop over relevant lock strategies
     foreach (var lockStrategy in EnumerateLockStrategies(strategyMinEyes, stopAt))
     {
-        var player = new Player(lockStrategy);
+        var player = new Player("Player", lockStrategy);
 
         var win = 0;
         var totalPoints = 0.0;
@@ -47,12 +47,39 @@ static void CreateStatistics()
     }
 }
 
-static void SimplePlay()
+static void PlayStatistics()
 {
+    const int numberOfPlays = 1000;
     const int stopAt = 30;
     const int strategyMinEyes = 4;
+    var lockStrategiesWins = EnumerateLockStrategies(strategyMinEyes, stopAt).ToDictionary(ls => ls, _ => 0);
 
-    var player = new Player(EnumerateLockStrategies(strategyMinEyes, stopAt).First());
-    var dice = Enumerable.Range(0, 6).Select(_ => new Die()).ToList();
-    player.Play(dice, 0, true);
+    for (var i = 0; i < lockStrategiesWins.Count - 1; i++)
+    for (var j = i + 1; j < lockStrategiesWins.Count; j++)
+    {
+        var player1 = new Player("Player 1", lockStrategiesWins.Keys.ElementAt(i));
+        var player2 = new Player("Player 2", lockStrategiesWins.Keys.ElementAt(j));
+
+        var player1Wins = 0;
+        var player2Wins = 0;
+
+        var game = new Game([player1, player2]);
+
+        for (var k = 0; k < numberOfPlays; k++)
+        {
+            var winner = game.Play();
+            if (winner == player1) player1Wins++;
+            else if (winner == player2) player2Wins++;
+        }
+
+        lockStrategiesWins[player1.LockStrategy] += player1Wins;
+        lockStrategiesWins[player2.LockStrategy] += player2Wins;
+
+        Console.WriteLine($"{player1.LockStrategy} wins: {player1Wins}, {player2.LockStrategy} wins: {player2Wins}");
+    }
+
+    foreach (var lockStrategyWins in lockStrategiesWins)
+    {
+        Console.WriteLine($"{lockStrategyWins.Key} total wins: {lockStrategyWins.Value}");
+    }
 }
